@@ -4,12 +4,41 @@ import { geminiService } from '../../../services/geminiService';
 import { speechService } from '../../../services/speechService';
 import { AIMessage } from '../../../types/health';
 
+// Enhanced markdown renderer for AI responses
+const renderMarkdown = (text: string) => {
+  return text
+    // Bold text
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-gray-900">$1</strong>')
+    // Italic text
+    .replace(/\*(.*?)\*/g, '<em class="italic text-gray-700">$1</em>')
+    // Headings
+    .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold text-gray-800 mt-4 mb-2 border-l-4 border-blue-500 pl-3">$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-gray-900 mt-6 mb-3 border-b-2 border-blue-300 pb-2">$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold text-gray-900 mt-6 mb-4 text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">$1</h1>')
+    // Bullet points
+    .replace(/^- (.*$)/gim, '<li class="ml-6 mb-2 flex items-start"><span class="text-blue-500 mr-2">•</span><span>$1</span></li>')
+    // Numbered lists
+    .replace(/^\d+\. (.*$)/gim, '<li class="ml-6 mb-2 flex items-start"><span class="text-blue-500 mr-2 font-semibold">$&</span></li>')
+    // Code blocks
+    .replace(/`(.*?)`/g, '<code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-gray-800">$1</code>')
+    // Links
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-600 hover:text-blue-800 underline" target="_blank" rel="noopener noreferrer">$1</a>')
+    // Paragraphs
+    .replace(/\n\n/g, '</p><p class="mb-3 leading-relaxed">')
+    .replace(/\n/g, '<br>')
+    // Wrap in paragraph tags
+    .replace(/^(.+)$/gm, '<p class="mb-3 leading-relaxed">$1</p>')
+    // Clean up empty paragraphs
+    .replace(/<p class="mb-3 leading-relaxed"><\/p>/g, '')
+    .replace(/<p class="mb-3 leading-relaxed"><br><\/p>/g, '');
+};
+
 const AIAssistant: React.FC = () => {
   const [messages, setMessages] = useState<AIMessage[]>([
     {
       id: '1',
       role: 'assistant',
-      content: 'Hello! I\'m your AI Health Assistant powered by Gemini AI. I can help you with health questions, analyze medical images, and provide wellness guidance. How can I assist you today?',
+      content: 'Hello! I\'m **Dr. Aisha**, your AI Health Assistant powered by Gemini AI. I can help you with health questions, analyze medical images, and provide wellness guidance. How can I assist you today?',
       timestamp: new Date()
     }
   ]);
@@ -18,6 +47,7 @@ const AIAssistant: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [autoSpeak, setAutoSpeak] = useState(false); // Disabled by default
   const [currentLanguage, setCurrentLanguage] = useState('en-US');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -62,7 +92,7 @@ const AIAssistant: React.FC = () => {
 
     try {
       const imageBase64 = selectedImage ? convertToBase64(selectedImage) : undefined;
-      const response = await geminiService.sendMessage(inputMessage, imageBase64, currentLanguage);
+      const response = await geminiService.sendHealthMessage(inputMessage, imageBase64, currentLanguage);
       
       const assistantMessage: AIMessage = {
         id: (Date.now() + 1).toString(),
@@ -73,14 +103,16 @@ const AIAssistant: React.FC = () => {
 
       setMessages(prev => [...prev, assistantMessage]);
       
-      // Auto-speak the response
-      try {
-        setIsSpeaking(true);
-        await speechService.speak(response);
-        setIsSpeaking(false);
-      } catch (error) {
-        console.error('Speech synthesis error:', error);
-        setIsSpeaking(false);
+      // Auto-speak the response only if enabled
+      if (autoSpeak) {
+        try {
+          setIsSpeaking(true);
+          await speechService.speak(response);
+          setIsSpeaking(false);
+        } catch (error) {
+          console.error('Speech synthesis error:', error);
+          setIsSpeaking(false);
+        }
       }
     } catch (error) {
       console.error('Error getting AI response:', error);
@@ -139,7 +171,7 @@ const AIAssistant: React.FC = () => {
       {
         id: '1',
         role: 'assistant',
-        content: 'Hello! I\'m your AI Health Assistant powered by Gemini AI. I can help you with health questions, analyze medical images, and provide wellness guidance. How can I assist you today?',
+        content: 'Hello! I\'m **Dr. Aisha**, your AI Health Assistant powered by Gemini AI. I can help you with health questions, analyze medical images, and provide wellness guidance. How can I assist you today?',
         timestamp: new Date()
       }
     ]);
@@ -260,7 +292,10 @@ const AIAssistant: React.FC = () => {
                       />
                     </div>
                   )}
-                  <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                  <div 
+                    className="prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
+                  ></div>
                 </div>
                 <p className="text-xs text-slate-500 mt-2 px-2">
                   {message.timestamp.toLocaleTimeString()}
@@ -370,7 +405,7 @@ const AIAssistant: React.FC = () => {
           <div className="flex items-center justify-center mt-4 space-x-6 text-xs text-slate-500">
             <div className="flex items-center space-x-1">
               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span>Gemini AI</span>
+              <span>Dr. Aisha - Health AI</span>
             </div>
             <div className="flex items-center space-x-1">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -382,8 +417,21 @@ const AIAssistant: React.FC = () => {
             </div>
             <div className="flex items-center space-x-1">
               <div className="w-2 h-2 bg-rose-500 rounded-full"></div>
-              <span>Voice Enabled</span>
+              <span>Voice Control</span>
             </div>
+          </div>
+
+          {/* Auto-speak Toggle */}
+          <div className="flex items-center justify-center mt-4">
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={autoSpeak}
+                onChange={(e) => setAutoSpeak(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <span className="text-sm text-slate-600">Auto-speak responses</span>
+            </label>
           </div>
         </div>
       </div>

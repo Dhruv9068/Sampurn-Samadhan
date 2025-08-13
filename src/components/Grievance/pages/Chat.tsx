@@ -4,12 +4,41 @@ import { geminiService } from '../../../services/geminiService';
 import { speechService } from '../../../services/speechService';
 import { AIMessage } from '../../../types/health';
 
+// Enhanced markdown renderer for AI responses
+const renderMarkdown = (text: string) => {
+  return text
+    // Bold text
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-gray-900">$1</strong>')
+    // Italic text
+    .replace(/\*(.*?)\*/g, '<em class="italic text-gray-700">$1</em>')
+    // Headings
+    .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold text-gray-800 mt-4 mb-2 border-l-4 border-orange-500 pl-3">$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-gray-900 mt-6 mb-3 border-b-2 border-orange-300 pb-2">$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold text-gray-900 mt-6 mb-4 text-center bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">$1</h1>')
+    // Bullet points
+    .replace(/^- (.*$)/gim, '<li class="ml-6 mb-2 flex items-start"><span class="text-orange-500 mr-2">•</span><span>$1</span></li>')
+    // Numbered lists
+    .replace(/^\d+\. (.*$)/gim, '<li class="ml-6 mb-2 flex items-start"><span class="text-orange-500 mr-2 font-semibold">$&</span></li>')
+    // Code blocks
+    .replace(/`(.*?)`/g, '<code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-gray-800">$1</code>')
+    // Links
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-orange-600 hover:text-orange-800 underline" target="_blank" rel="noopener noreferrer">$1</a>')
+    // Paragraphs
+    .replace(/\n\n/g, '</p><p class="mb-3 leading-relaxed">')
+    .replace(/\n/g, '<br>')
+    // Wrap in paragraph tags
+    .replace(/^(.+)$/gm, '<p class="mb-3 leading-relaxed">$1</p>')
+    // Clean up empty paragraphs
+    .replace(/<p class="mb-3 leading-relaxed"><\/p>/g, '')
+    .replace(/<p class="mb-3 leading-relaxed"><br><\/p>/g, '');
+};
+
 export const Chat: React.FC = () => {
   const [messages, setMessages] = useState<AIMessage[]>([
     {
       id: '1',
       role: 'assistant',
-      content: 'Hello! I\'m your AI Chat Assistant powered by Gemini AI. I can assist with various queries using voice or text input. How can I help you today?',
+      content: 'Hello! I\'m **Officer Priya**, your AI Chat Assistant powered by Gemini AI. I can assist with various queries using voice or text input. How can I help you today?',
       timestamp: new Date()
     }
   ]);
@@ -17,6 +46,7 @@ export const Chat: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [autoSpeak, setAutoSpeak] = useState(false); // Disabled by default
   const [currentLanguage, setCurrentLanguage] = useState('en-US');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -43,9 +73,8 @@ export const Chat: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await geminiService.sendMessage(
+      const response = await geminiService.sendGrievanceMessage(
         `As a general AI assistant, provide helpful and accurate information about: ${inputMessage}.`,
-        undefined,
         currentLanguage
       );
 
@@ -58,14 +87,16 @@ export const Chat: React.FC = () => {
 
       setMessages(prev => [...prev, assistantMessage]);
 
-      // Auto-speak the response
-      try {
-        setIsSpeaking(true);
-        await speechService.speak(response);
-        setIsSpeaking(false);
-      } catch (error) {
-        console.error('Speech synthesis error:', error);
-        setIsSpeaking(false);
+      // Auto-speak the response only if enabled
+      if (autoSpeak) {
+        try {
+          setIsSpeaking(true);
+          await speechService.speak(response);
+          setIsSpeaking(false);
+        } catch (error) {
+          console.error('Speech synthesis error:', error);
+          setIsSpeaking(false);
+        }
       }
     } catch (error) {
       console.error('Error getting AI response:', error);
@@ -233,7 +264,12 @@ export const Chat: React.FC = () => {
                       : 'bg-cream-50 text-gold-800 border border-cream-100'
                   }`}
                 >
-                  <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                  <div className="flex-1">
+                    <div 
+                      className="prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
+                    ></div>
+                  </div>
                 </div>
                 <p className="text-xs text-slate-500 mt-2 px-2">
                   {message.timestamp.toLocaleTimeString()}
@@ -303,13 +339,30 @@ export const Chat: React.FC = () => {
           
           <div className="flex items-center justify-center mt-4 space-x-6 text-xs text-slate-500">
             <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-cream-500 rounded-full"></div>
-              <span>Gemini AI</span>
+              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+              <span>Officer Priya - Grievance AI</span>
             </div>
             <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-gold-500 rounded-full"></div>
-              <span>Voice Enabled</span>
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span>Secure & Private</span>
             </div>
+            <div className="flex items-center space-x-1">
+              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              <span>Voice Control</span>
+            </div>
+          </div>
+
+          {/* Auto-speak Toggle */}
+          <div className="flex items-center justify-center mt-4">
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={autoSpeak}
+                onChange={(e) => setAutoSpeak(e.target.checked)}
+                className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 focus:ring-2"
+              />
+              <span className="text-sm text-slate-600">Auto-speak responses</span>
+            </label>
           </div>
         </div>
       </div>
