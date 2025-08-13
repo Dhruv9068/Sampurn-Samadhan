@@ -271,7 +271,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       {/* 3D Curved Navbar */}
       <nav 
         ref={navRef}
-        className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-6xl px-4"
+        className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-7xl px-4"
       >
         <motion.div
           className={`relative bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl border border-orange-200/30 transition-all duration-700 ${
