@@ -1,167 +1,245 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Sparkles, Heart, Leaf, MessageSquare } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, Heart, Leaf, MessageSquare, Zap, Globe, Shield, Users } from 'lucide-react';
 
-interface LoadingScreenProps {
-  isLoading: boolean;
-  onLoadingComplete: () => void;
-}
+// Inspirational quotes related to Sampurn Samadhan
+const quotes = [
+  {
+    text: "Transforming lives through technology, one solution at a time.",
+    author: "Sampurn Samadhan",
+    icon: Sparkles
+  },
+  {
+    text: "Empowering communities with AI-driven solutions for a better tomorrow.",
+    author: "Sampurn Samadhan",
+    icon: Heart
+  },
+  {
+    text: "Where innovation meets compassion, creating lasting impact.",
+    author: "Sampurn Samadhan",
+    icon: Leaf
+  },
+  {
+    text: "Building bridges between technology and human welfare.",
+    author: "Sampurn Samadhan",
+    icon: MessageSquare
+  },
+  {
+    text: "Accelerating progress through intelligent digital solutions.",
+    author: "Sampurn Samadhan",
+    icon: Zap
+  },
+  {
+    text: "Connecting the world through smart governance and healthcare.",
+    author: "Sampurn Samadhan",
+    icon: Globe
+  },
+  {
+    text: "Securing futures with trusted, reliable digital platforms.",
+    author: "Sampurn Samadhan",
+    icon: Shield
+  },
+  {
+    text: "Uniting technology and humanity for collective growth.",
+    author: "Sampurn Samadhan",
+    icon: Users
+  }
+];
 
-const LoadingScreen: React.FC<LoadingScreenProps> = ({ isLoading, onLoadingComplete }) => {
-  const [progress, setProgress] = useState(0);
-  const [currentStep, setCurrentStep] = useState(0);
-
-  const loadingSteps = [
-    { icon: Sparkles, text: 'Initializing Sampurn Samadhan', color: 'from-orange-400 to-orange-600' },
-    { icon: Heart, text: 'Loading Health Management System', color: 'from-red-400 to-red-600' },
-    { icon: Leaf, text: 'Loading Agriculture System', color: 'from-green-400 to-green-600' },
-    { icon: MessageSquare, text: 'Loading Grievance Management', color: 'from-blue-400 to-blue-600' },
-    { icon: Sparkles, text: 'AI Systems Ready', color: 'from-purple-400 to-purple-600' }
-  ];
+const LoadingScreen: React.FC = () => {
+  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+  const [loadingProgress, setLoadingProgress] = useState(0);
 
   useEffect(() => {
-    if (!isLoading) return;
+    // Rotate quotes every 3 seconds
+    const quoteInterval = setInterval(() => {
+      setCurrentQuoteIndex((prev) => (prev + 1) % quotes.length);
+    }, 3000);
 
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(prev);
-          onLoadingComplete();
-          return 100;
-        }
-        return prev + 2;
+    // Simulate loading progress
+    const progressInterval = setInterval(() => {
+      setLoadingProgress((prev) => {
+        if (prev >= 100) return 100;
+        return prev + Math.random() * 15;
       });
-    }, 50);
-
-    const stepInterval = setInterval(() => {
-      setCurrentStep(prev => {
-        if (prev >= loadingSteps.length - 1) {
-          clearInterval(stepInterval);
-          return loadingSteps.length - 1;
-        }
-        return prev + 1;
-      });
-    }, 800);
+    }, 200);
 
     return () => {
-      clearInterval(interval);
-      clearInterval(stepInterval);
+      clearInterval(quoteInterval);
+      clearInterval(progressInterval);
     };
-  }, [isLoading, onLoadingComplete]);
+  }, []);
 
-  if (!isLoading) return null;
+  const currentQuote = quotes[currentQuoteIndex];
+  const IconComponent = currentQuote.icon;
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-blue-50 via-purple-50 via-pink-50 to-orange-50 z-50 flex items-center justify-center">
-      {/* Background Effects */}
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-white">
+      {/* Soft Glow Background */}
+      <div 
+        className="absolute inset-0 transition-all duration-1000 ease-out"
+        style={{ 
+          background: `linear-gradient(
+            to bottom,
+            rgba(255, 154, 72, 0.15), /* Soft Orange */
+            rgba(203, 141, 255, 0.08) /* Soft Purple */
+          )`
+        }}
+      />
+      
+      {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-white/10 backdrop-blur-sm" />
-        
-        {/* Floating Elements */}
-        {[...Array(8)].map((_, i) => (
+        {/* Floating particles */}
+        {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute rounded-full opacity-20 blur-3xl"
+            className="absolute w-2 h-2 bg-orange-400/20 rounded-full"
             style={{
-              width: `${Math.random() * 400 + 200}px`,
-              height: `${Math.random() * 400 + 200}px`,
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
-              background: `linear-gradient(${Math.random() * 360}deg, 
-                rgba(147, 51, 234, 0.1), 
-                rgba(236, 72, 153, 0.08), 
-                rgba(251, 146, 60, 0.05))`,
             }}
             animate={{
-              x: [0, Math.random() * 150 - 75, 0],
-              y: [0, Math.random() * 150 - 75, 0],
-              scale: [1, 1.3, 1],
-              rotate: [0, 180, 360],
+              y: [0, -30, 0],
+              opacity: [0.2, 0.8, 0.2],
+              scale: [1, 1.5, 1],
             }}
             transition={{
-              duration: Math.random() * 10 + 8,
+              duration: 3 + Math.random() * 2,
               repeat: Infinity,
               ease: "easeInOut",
+              delay: Math.random() * 2,
             }}
           />
         ))}
+        
+        {/* Animated waves */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 opacity-15">
+          <svg className="w-full h-full" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path
+              d="M0,0 C300,60 600,30 1200,60 L1200,120 L0,120 Z"
+              fill="url(#waveGradient)"
+              className="animate-pulse"
+            />
+            <defs>
+              <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#ff9a48" stopOpacity="0.3"/>
+                <stop offset="50%" stopColor="#cb8dff" stopOpacity="0.2"/>
+                <stop offset="100%" stopColor="#ff9a48" stopOpacity="0.3"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
       </div>
 
-      {/* Loading Content */}
-      <div className="relative z-10 text-center max-w-md mx-auto px-8">
+      {/* Main Content */}
+      <div className="relative z-10 text-center px-6 max-w-4xl">
         {/* Logo */}
         <motion.div
-          className="mb-8"
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
+          className="mb-8"
         >
-          <div className="flex items-center justify-center space-x-3 mb-6">
+          <div className="w-24 h-24 mx-auto bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center shadow-2xl">
             <img 
               src="/logo.jpeg" 
               alt="Sampurn Samadhan Logo" 
-              className="w-16 h-16 rounded-2xl shadow-2xl"
+              className="w-16 h-16 rounded-full object-cover"
             />
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-500 via-orange-400 to-orange-600 bg-clip-text text-transparent">
-              Sampurn Samadhan
-            </h1>
           </div>
         </motion.div>
 
-        {/* Current Step */}
+        {/* Title */}
+        <motion.h1
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+          className="text-4xl md:text-6xl font-bold text-gray-900 mb-4 drop-shadow-sm"
+        >
+          <span className="bg-gradient-to-r from-orange-600 via-orange-500 to-orange-600 bg-clip-text text-transparent">
+            Sampurn Samadhan
+          </span>
+        </motion.h1>
+
+        {/* Subtitle */}
+        <motion.p
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+          className="text-xl md:text-2xl text-gray-700 mb-12 font-medium drop-shadow-sm"
+        >
+          Complete Digital Solutions Platform
+        </motion.p>
+
+        {/* Quote Section */}
         <motion.div
-          key={currentStep}
+          key={currentQuoteIndex}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-8"
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.6 }}
+          className="mb-12"
         >
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            <div className={`w-12 h-12 bg-gradient-to-br ${loadingSteps[currentStep].color} rounded-xl flex items-center justify-center shadow-lg`}>
-              {React.createElement(loadingSteps[currentStep].icon, { className: "w-6 h-6 text-white" })}
+          <div className="bg-white/90 rounded-2xl p-8 shadow-xl border border-orange-200/30">
+            <div className="flex items-center justify-center mb-4">
+              <IconComponent className="w-8 h-8 text-orange-500" />
             </div>
-            <span className="text-lg font-medium text-gray-700">
-              {loadingSteps[currentStep].text}
-            </span>
+            <blockquote className="text-lg md:text-xl text-gray-700 italic mb-4 leading-relaxed">
+              "{currentQuote.text}"
+            </blockquote>
+            <cite className="text-orange-600 font-semibold">
+              — {currentQuote.author}
+            </cite>
           </div>
         </motion.div>
 
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
-            <motion.div
-              className="h-full bg-gradient-to-r from-orange-400 to-purple-500 rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.3 }}
-            />
-          </div>
-          <div className="mt-2 text-sm text-gray-600">
-            {Math.round(progress)}% Complete
-          </div>
-        </div>
-
-        {/* Loading Animation */}
+        {/* Loading Bar */}
         <motion.div
-          className="flex justify-center space-x-2"
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-        >
-          <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-          <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-          <div className="w-3 h-3 bg-pink-500 rounded-full"></div>
-        </motion.div>
-
-        {/* Tagline */}
-        <motion.p
-          className="mt-8 text-gray-600 text-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 0.5 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+          className="mb-8"
         >
-          Transforming lives through AI-powered digital solutions
+          <div className="w-full max-w-md mx-auto">
+            <div className="flex justify-between text-sm text-gray-600 mb-2">
+              <span>Loading...</span>
+              <span>{Math.round(loadingProgress)}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+              <motion.div
+                className="h-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${loadingProgress}%` }}
+                transition={{ duration: 0.3 }}
+              />
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Loading Text */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.8 }}
+          className="text-gray-600 text-sm font-medium drop-shadow-sm"
+        >
+          Preparing your digital experience...
         </motion.p>
       </div>
+
+      {/* Corner Accents */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1, delay: 1 }}
+        className="absolute top-8 right-8 w-16 h-16 bg-gradient-to-br from-orange-400/20 to-orange-600/20 rounded-full"
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1, delay: 1.2 }}
+        className="absolute bottom-8 left-8 w-12 h-12 bg-gradient-to-br from-purple-400/20 to-purple-600/20 rounded-full"
+      />
     </div>
   );
 };

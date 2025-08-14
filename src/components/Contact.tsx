@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { 
   Phone, Mail, MapPin, Send, Clock, MessageSquare, 
   Facebook, Twitter, Instagram, Linkedin, ArrowLeft
 } from 'lucide-react';
 
-interface ContactProps {
-  onNavigate: (portal: string) => void;
-}
-
-const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
+const Contact: React.FC = () => {
+  const navigate = useNavigate();
   const [contactForm, setContactForm] = useState({
     name: '',
     email: '',
@@ -56,9 +54,21 @@ const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 via-pink-50 to-orange-50 relative overflow-hidden">
-      {/* Glassmorphism Background Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-white/10 backdrop-blur-sm" />
+    <div className="min-h-screen relative overflow-hidden bg-white">
+      {/* Soft Glow Background */}
+      <div 
+        className="fixed inset-0 transition-all duration-1000 ease-out"
+        style={{ 
+          background: `linear-gradient(
+            to bottom,
+            rgba(255, 154, 72, 0.12), /* Soft Orange */
+            rgba(203, 141, 255, 0.06) /* Soft Purple */
+          )`
+        }}
+      />
+      
+      {/* Subtle Glassmorphism Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-white/10" />
       
       {/* Doodle-style Drawings Overlay */}
       <div className="absolute inset-0 opacity-10">
@@ -79,7 +89,7 @@ const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
       <header className="relative z-10 pt-8 pb-16">
         <div className="container mx-auto px-8">
           <motion.button
-            onClick={() => onNavigate('landing')}
+            onClick={() => navigate('/')}
             className="flex items-center space-x-2 text-orange-600 hover:text-orange-700 transition-colors mb-8"
             whileHover={{ x: -5 }}
           >

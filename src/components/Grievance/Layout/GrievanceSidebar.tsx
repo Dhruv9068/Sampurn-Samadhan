@@ -15,13 +15,13 @@ import {
 } from 'lucide-react';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: Home },
-  { name: 'Complaints', href: '/complaints', icon: FileText },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-  { name: 'Departments', href: '/departments', icon: Users },
-  { name: 'AI Assistant', href: '/chat', icon: MessageSquare },
-  { name: 'Search', href: '/search', icon: Search },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Dashboard', href: '/grievance', icon: Home },
+  { name: 'Complaints', href: '/grievance/complaints', icon: FileText },
+  { name: 'Analytics', href: '/grievance/analytics', icon: BarChart3 },
+  { name: 'Departments', href: '/grievance/departments', icon: Users },
+  { name: 'AI Assistant', href: '/grievance/chat', icon: MessageSquare },
+  { name: 'Search', href: '/grievance/search', icon: Search },
+  { name: 'Settings', href: '/grievance/settings', icon: Settings },
 ];
 
 type PortalType = 'landing' | 'portal' | 'health' | 'agriculture' | 'grievance' | 'contact';
@@ -58,7 +58,7 @@ export const GrievanceSidebar: React.FC<SidebarProps> = ({ isOpen = false, onClo
       {/* Sidebar */}
       <motion.div 
         className={`
-          fixed lg:static inset-y-0 left-0 z-50 w-[36vh] 
+          ${isOpen ? 'fixed' : 'lg:relative'} inset-y-0 left-0 z-50 w-80 
           bg-gradient-to-b from-cream-50 to-cream-100 shadow-xl border-r border-gold-200
           lg:translate-x-0 lg:shadow-lg
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -110,7 +110,7 @@ export const GrievanceSidebar: React.FC<SidebarProps> = ({ isOpen = false, onClo
             {/* Navigation */}
             <nav className="space-y-2 mb-6 lg:mb-8">
               {navigation.map((item, index) => {
-                const isActive = location.pathname === item.href || (item.href !== '/' && location.pathname.startsWith(item.href));
+                const isActive = location.pathname === item.href || (item.href !== '/grievance' && location.pathname.startsWith(item.href));
                 return (
                   <motion.div
                     key={item.name}

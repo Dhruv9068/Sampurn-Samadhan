@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { TypeAnimation } from 'react-type-animation';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
   Heart, Leaf, MessageSquare, ArrowRight, Sparkles, Users, Shield, Zap, Globe, 
   Menu, X, Star, Award, TrendingUp, CheckCircle, Play, Phone, Mail, MapPin,
@@ -10,11 +12,8 @@ import {
 
 gsap.registerPlugin(ScrollTrigger);
 
-interface LandingPageProps {
-  onNavigate: (portal: string) => void;
-}
-
-const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
+const LandingPage: React.FC = () => {
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const [contactForm, setContactForm] = useState({
@@ -29,55 +28,25 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-    // GSAP Animations
-    const ctx = gsap.context(() => {
-      // Hero animations
-      gsap.fromTo('.hero-title', 
-        { y: 100, opacity: 0 },
-        { y: 0, opacity: 1, duration: 1.2, ease: 'power3.out' }
-      );
-
-      gsap.fromTo('.hero-subtitle', 
-        { y: 50, opacity: 0 },
-        { y: 0, opacity: 1, duration: 1, delay: 0.3, ease: 'power3.out' }
-      );
-
-      // Scroll-triggered animations
-      gsap.utils.toArray('.animate-on-scroll').forEach((element: any) => {
-        gsap.fromTo(element, 
+  useEffect(() => {
+    if (heroRef.current) {
+      const ctx = gsap.context(() => {
+        gsap.fromTo('.hero-content', 
           { y: 100, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 1,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: element,
-              start: 'top 80%',
-              end: 'bottom 20%',
-              toggleActions: 'play none none reverse'
-            }
-          }
+          { y: 0, opacity: 1, duration: 1, ease: 'power3.out' }
         );
-      });
-
-      // Floating elements
-      gsap.to('.floating-element', {
-        y: -20,
-        duration: 2,
-        ease: 'power2.inOut',
-        yoyo: true,
-        repeat: -1,
-        stagger: 0.5
-      });
-
-    }, heroRef);
-
-    return () => {
-      ctx.revert();
-      window.removeEventListener('scroll', handleScroll);
-    };
+        
+        gsap.fromTo('.floating-element', 
+          { y: 50, opacity: 0 },
+          { y: 0, opacity: 1, duration: 1, stagger: 0.2, ease: 'power3.out', delay: 0.5 }
+        );
+      }, heroRef);
+      
+      return () => ctx.revert();
+    }
   }, []);
 
   const features = [
@@ -139,22 +108,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
   ];
 
   const handleExplore = () => {
-    onNavigate('portal');
+    navigate('/portal');
   };
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setContactForm({ name: '', email: '', message: '' });
+    // Simulate API call
+    setTimeout(() => {
       alert('Thank you for your message! We will get back to you soon.');
-    } catch (error) {
-      alert('Something went wrong. Please try again.');
-    } finally {
+      setContactForm({ name: '', email: '', message: '' });
       setIsSubmitting(false);
-    }
+    }, 1000);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -166,46 +132,45 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 via-pink-50 to-orange-50 relative overflow-hidden">
-      {/* Glassmorphism Background Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-white/10 backdrop-blur-sm" />
+    <div className="min-h-screen relative overflow-hidden bg-white">
+      {/* Concentrated Soft Glow Background - Top Only */}
+      <div 
+        className="fixed top-0 left-0 right-0 h-96 transition-all duration-1000 ease-out"
+        style={{ 
+          background: `linear-gradient(
+            to bottom,
+            rgba(255, 154, 72, ${0.2 + (scrollY * 0.0004)}), /* Soft Orange - concentrated at top */
+            rgba(203, 141, 255, ${0.1 + (scrollY * 0.0003)}), /* Soft Purple - concentrated at top */
+            rgba(255, 154, 72, ${0.05 + (scrollY * 0.0002)}), /* Fading orange */
+            transparent /* Fade to transparent */
+          )`,
+          opacity: Math.min(0.9, 0.15 + (scrollY * 0.0001)) // Gradually increase opacity on scroll
+        }}
+      />
       
-      {/* Doodle-style Drawings Overlay */}
-      <div className="absolute inset-0 opacity-10">
-        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1200 800" preserveAspectRatio="none">
-          <defs>
-            <pattern id="doodlePattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-              <path d="M10,20 Q30,10 50,20 T90,20" stroke="rgba(0,0,0,0.1)" strokeWidth="2" fill="none" />
-              <circle cx="20" cy="40" r="3" fill="rgba(0,0,0,0.1)" />
-              <path d="M70,60 Q80,50 90,60" stroke="rgba(0,0,0,0.1)" strokeWidth="2" fill="none" />
-              <path d="M15,80 Q25,70 35,80 T55,80" stroke="rgba(0,0,0,0.1)" strokeWidth="2" fill="none" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#doodlePattern)" />
-        </svg>
-      </div>
-
-      {/* Liquid Background Effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Floating Liquid Blobs */}
-        {[...Array(6)].map((_, i) => (
+      {/* Subtle Glassmorphism Overlay - Top Only */}
+      <div className="absolute top-0 left-0 right-0 h-96 bg-gradient-to-br from-white/30 via-transparent to-white/5 opacity-40 -z-10" />
+      
+      {/* Floating Liquid Blobs - Concentrated at Top */}
+      <div className="absolute top-0 left-0 right-0 h-96 overflow-hidden -z-20">
+        {[...Array(3)].map((_, i) => (
           <motion.div
             key={i}
             className="floating-element absolute rounded-full opacity-15 blur-3xl"
             style={{
-              width: `${Math.random() * 500 + 300}px`,
-              height: `${Math.random() * 500 + 300}px`,
+              width: `${Math.random() * 300 + 150}px`,
+              height: `${Math.random() * 300 + 150}px`,
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
               background: `linear-gradient(${Math.random() * 360}deg, 
-                rgba(147, 51, 234, 0.1), 
-                rgba(236, 72, 153, 0.08), 
-                rgba(251, 146, 60, 0.05))`,
+                rgba(255, 154, 72, 0.12), 
+                rgba(203, 141, 255, 0.08), 
+                rgba(255, 154, 72, 0.05))`,
             }}
             animate={{
-              x: [0, Math.random() * 200 - 100, 0],
-              y: [0, Math.random() * 200 - 100, 0],
-              scale: [1, 1.4, 1],
+              x: [0, Math.random() * 100 - 50, 0],
+              y: [0, Math.random() * 100 - 50, 0],
+              scale: [1, 1.2, 1],
               rotate: [0, 180, 360],
             }}
             transition={{
@@ -216,49 +181,49 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           />
         ))}
         
-        {/* Animated SVG Waves */}
-        <div className="absolute inset-0 opacity-20">
-          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1200 800" preserveAspectRatio="none">
+        {/* Animated SVG Waves - Top Only */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 opacity-15">
+          <svg className="w-full h-full" viewBox="0 0 1200 120" preserveAspectRatio="none">
             <defs>
               <linearGradient id="waveGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#fed7aa" stopOpacity="0.1"/>
-                <stop offset="50%" stopColor="#fdba74" stopOpacity="0.08"/>
-                <stop offset="100%" stopColor="#fb923c" stopOpacity="0.05"/>
+                <stop offset="0%" stopColor="#ff9a48" stopOpacity="0.08"/>
+                <stop offset="50%" stopColor="#cb8dff" stopOpacity="0.05"/>
+                <stop offset="100%" stopColor="#ff9a48" stopOpacity="0.03"/>
               </linearGradient>
               <linearGradient id="waveGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#f97316" stopOpacity="0.08"/>
-                <stop offset="50%" stopColor="#ea580c" stopOpacity="0.05"/>
-                <stop offset="100%" stopColor="#c2410c" stopOpacity="0.03"/>
+                <stop offset="0%" stopColor="#cb8dff" stopOpacity="0.06"/>
+                <stop offset="50%" stopColor="#ff9a48" stopOpacity="0.03"/>
+                <stop offset="100%" stopColor="#cb8dff" stopOpacity="0.01"/>
               </linearGradient>
             </defs>
             <motion.path
-              d="M0,400 C300,200 600,600 1200,300 L1200,800 L0,800 Z"
+              d="M0,80 C300,40 600,120 1200,60 L1200,120 L0,120 Z"
               fill="url(#waveGradient1)"
               animate={{
                 d: [
-                  "M0,400 C300,200 600,600 1200,300 L1200,800 L0,800 Z",
-                  "M0,300 C300,500 600,100 1200,400 L1200,800 L0,800 Z",
-                  "M0,400 C300,200 600,600 1200,300 L1200,800 L0,800 Z"
+                  "M0,80 C300,40 600,120 1200,60 L1200,120 L0,120 Z",
+                  "M0,60 C300,100 600,20 1200,80 L1200,120 L0,120 Z",
+                  "M0,80 C300,40 600,120 1200,60 L1200,120 L0,120 Z"
                 ]
               }}
               transition={{
-                duration: 12,
+                duration: 18,
                 repeat: Infinity,
                 ease: "easeInOut"
               }}
             />
             <motion.path
-              d="M0,500 C400,300 800,700 1200,400 L1200,800 L0,800 Z"
+              d="M0,100 C400,60 800,140 1200,80 L1200,120 L0,120 Z"
               fill="url(#waveGradient2)"
               animate={{
                 d: [
-                  "M0,500 C400,300 800,700 1200,400 L1200,800 L0,800 Z",
-                  "M0,600 C400,400 800,200 1200,500 L1200,800 L0,800 Z",
-                  "M0,500 C400,300 800,700 1200,400 L1200,800 L0,800 Z"
+                  "M0,100 C400,60 800,140 1200,80 L1200,120 L0,120 Z",
+                  "M0,120 C400,80 800,40 1200,100 L1200,120 L0,120 Z",
+                  "M0,100 C400,60 800,140 1200,80 L1200,120 L0,120 Z"
                 ]
               }}
               transition={{
-                duration: 15,
+                duration: 22,
                 repeat: Infinity,
                 ease: "easeInOut",
                 delay: 2
@@ -268,174 +233,240 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* 3D Curved Navbar */}
-      <nav 
-        ref={navRef}
-        className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-7xl px-4"
-      >
-        <motion.div
-          className={`relative bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl border border-orange-200/30 transition-all duration-700 ${
-            scrollY > 50 ? 'bg-white/95 shadow-3xl' : ''
-          }`}
-          style={{
-            clipPath: 'polygon(0 15%, 100% 15%, 100% 85%, 0 85%)',
-            borderRadius: '2.5rem',
-          }}
-          initial={{ y: -100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 1, ease: "easeOut" }}
+      {/* Navigation */}
+      <nav ref={navRef} className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-2xl border-b border-orange-200/30 transition-all duration-300">
+        <motion.div 
+          className="container mx-auto px-8 py-4"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
         >
-          <div className="px-10 py-6">
-            <div className="flex items-center justify-between">
-              {/* Left Navigation */}
-              <div className="hidden md:flex items-center space-x-10 flex-1">
-                {['Home', 'Features', 'About'].map((item) => (
-                  <motion.a
-                    key={item}
-                    href={`#${item.toLowerCase()}`}
-                    className="text-gray-700 hover:text-orange-500 font-medium transition-all duration-300 relative group"
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {item}
-                    <motion.div
-                      className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-orange-400 to-orange-500 group-hover:w-full transition-all duration-300"
-                    />
-                  </motion.a>
-                ))}
-              </div>
-
-              {/* Center - Sampurn Samadhan Logo */}
-              <motion.div 
-                className="flex-1 text-center"
-                whileHover={{ scale: 1.05 }}
+          <div className="flex items-center justify-between">
+            {/* Left - Logo */}
+            <motion.div 
+              className="flex items-center space-x-3"
+              whileHover={{ scale: 1.05 }}
+            >
+              <img 
+                src="/logo.jpeg" 
+                alt="Sampurn Samadhan Logo" 
+                className="w-12 h-12 rounded-full shadow-lg"
+              />
+              <motion.h1
+                className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-orange-500 via-orange-400 to-orange-600 bg-clip-text text-transparent"
+                animate={{ 
+                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                }}
+                transition={{ duration: 4, repeat: Infinity }}
+                style={{ backgroundSize: '200% 200%' }}
               >
-                <div className="flex items-center justify-center space-x-3">
-                  {/* Logo Icon */}
-                  <img 
-                    src="/logo.jpeg" 
-                    alt="Sampurn Samadhan Logo" 
-                    className="w-12 h-12 rounded-full shadow-lg"
-                  />
-                  {/* Company Name */}
-                  <motion.h1
-                    className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-orange-500 via-orange-400 to-orange-600 bg-clip-text text-transparent"
-                    animate={{ 
-                      backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-                    }}
-                    transition={{ duration: 4, repeat: Infinity }}
-                    style={{ backgroundSize: '200% 200%' }}
-                  >
-                    Sampurn Samadhan
-                  </motion.h1>
-                </div>
-              </motion.div>
+                Sampurn Samadhan
+              </motion.h1>
+            </motion.div>
 
-              {/* Right Navigation */}
-              <div className="hidden md:flex items-center space-x-10 flex-1 justify-end">
-                {['Testimonials'].map((item) => (
-                  <motion.a
-                    key={item}
-                    href={`#${item.toLowerCase()}`}
-                    className="text-gray-700 hover:text-orange-500 font-medium transition-all duration-300 relative group"
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {item}
-                    <motion.div
-                      className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-orange-400 to-orange-500 group-hover:w-full transition-all duration-300"
-                    />
-                  </motion.a>
-                ))}
-                <motion.button
-                  onClick={() => onNavigate('contact')}
+            {/* Center - Navigation Links */}
+            <div className="hidden lg:flex items-center space-x-8">
+              {['Home', 'Features', 'About', 'Testimonials', 'FAQ'].map((item) => (
+                <motion.a
+                  key={item}
+                  href={`#${item.toLowerCase()}`}
                   className="text-gray-700 hover:text-orange-500 font-medium transition-all duration-300 relative group"
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  Contact
+                  {item}
                   <motion.div
                     className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-orange-400 to-orange-500 group-hover:w-full transition-all duration-300"
                   />
-                </motion.button>
-                <motion.button
-                  onClick={handleExplore}
-                  className="bg-gradient-to-r from-orange-400 to-orange-500 text-white px-8 py-3 rounded-full hover:from-orange-500 hover:to-orange-600 transition-all shadow-lg font-medium"
-                  whileHover={{ scale: 1.05, y: -2, boxShadow: "0 15px 30px rgba(251, 146, 60, 0.3)" }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Explore
-                </motion.button>
-              </div>
+                </motion.a>
+              ))}
+            </div>
 
+            {/* Right - Auth Buttons */}
+            <div className="flex items-center space-x-4">
+              <motion.button
+                onClick={() => navigate('/login')}
+                className="hidden md:block text-gray-700 hover:text-orange-500 font-medium transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Login
+              </motion.button>
+              <motion.button
+                onClick={() => navigate('/signup')}
+                className="hidden md:block bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-2 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg font-medium"
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Sign Up
+              </motion.button>
+              <motion.button
+                onClick={() => navigate('/contact')}
+                className="text-gray-700 hover:text-orange-500 font-medium transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Contact
+              </motion.button>
+              
               {/* Mobile Menu Button */}
               <motion.button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="md:hidden p-2 text-gray-700 hover:text-orange-500 transition-colors"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-                aria-expanded={isMenuOpen}
-                aria-controls="mobile-menu"
+                className="lg:hidden p-2 text-gray-700 hover:text-orange-500 transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </motion.button>
             </div>
           </div>
-
-          {/* 3D Shadow Effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-orange-400/10 to-orange-500/10 rounded-3xl transform translate-y-1 -z-10 blur-sm" />
+          
+          {/* Light Glowing Effect at Bottom of Navbar */}
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-300/40 via-purple-300/30 to-orange-300/40 rounded-b-3xl blur-sm" />
         </motion.div>
 
         {/* Mobile Menu */}
         <AnimatePresence>
           {isMenuOpen && (
             <motion.div
-              id="mobile-menu"
-              className="md:hidden mt-4 bg-white/90 backdrop-blur-2xl rounded-2xl shadow-xl border border-orange-200/30 p-6"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              className="lg:hidden bg-white/95 backdrop-blur-xl border-b border-orange-200/30"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="flex flex-col space-y-4">
-                {['Home', 'Features', 'About', 'Testimonials'].map((item) => (
+              <div className="container mx-auto px-8 py-4 space-y-4">
+                {['Home', 'Features', 'About', 'Testimonials', 'FAQ'].map((item) => (
                   <motion.a
                     key={item}
                     href={`#${item.toLowerCase()}`}
-                    className="text-gray-700 hover:text-orange-500 transition-colors text-lg font-medium"
-                    whileHover={{ x: 5 }}
+                    className="block text-gray-700 hover:text-orange-500 font-medium transition-colors py-2"
+                    whileHover={{ x: 10 }}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {item}
                   </motion.a>
                 ))}
-                <motion.button
-                  onClick={() => {
-                    onNavigate('contact');
-                    setIsMenuOpen(false);
-                  }}
-                  className="text-gray-700 hover:text-orange-500 transition-colors text-lg font-medium text-left"
-                  whileHover={{ x: 5 }}
-                >
-                  Contact
-                </motion.button>
-                <motion.button
-                  onClick={handleExplore}
-                  className="bg-gradient-to-r from-orange-400 to-orange-500 text-white px-6 py-3 rounded-full hover:from-orange-500 hover:to-orange-600 transition-all shadow-lg font-medium w-fit"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Explore Solutions
-                </motion.button>
+                <div className="pt-4 border-t border-orange-200/30 space-y-3">
+                  <motion.button
+                    onClick={() => {
+                      navigate('/login');
+                      setIsMenuOpen(false);
+                    }}
+                    className="block w-full text-left text-gray-700 hover:text-orange-500 font-medium transition-colors py-2"
+                    whileHover={{ x: 10 }}
+                  >
+                    Login
+                  </motion.button>
+                  <motion.button
+                    onClick={() => {
+                      navigate('/signup');
+                      setIsMenuOpen(false);
+                    }}
+                    className="block w-full text-left text-gray-700 hover:text-orange-500 font-medium transition-colors py-2"
+                    whileHover={{ x: 10 }}
+                  >
+                    Sign Up
+                  </motion.button>
+                  <motion.button
+                    onClick={() => {
+                      navigate('/contact');
+                      setIsMenuOpen(false);
+                    }}
+                    className="block w-full text-left text-gray-700 hover:text-orange-500 font-medium transition-colors py-2"
+                    whileHover={{ x: 10 }}
+                  >
+                    Contact
+                  </motion.button>
+                </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </nav>
 
+      {/* Subtle Background Scroll Effect - 90% white + 10% gradient */}
+      <div 
+        className="fixed inset-0 transition-all duration-1000 ease-out z-0"
+        style={{ 
+          background: `linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, ${0.9 - (scrollY * 0.0001)}), /* 90% white, decreases slightly on scroll */
+            rgba(255, 154, 72, ${0.05 + (scrollY * 0.00005)}), /* Very subtle orange */
+            rgba(203, 141, 255, ${0.03 + (scrollY * 0.00003)}) /* Very subtle purple */
+          )`
+        }}
+      />
+
       {/* Hero Section */}
       <section id="home" ref={heroRef} className="relative min-h-screen flex items-center justify-center pt-32">
+        {/* Left Glow Effect */}
+        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-96 h-96">
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-orange-400/40 via-orange-500/35 to-transparent rounded-full blur-3xl"
+            animate={{
+              scale: [1, 1.5, 1],
+              opacity: [0.4, 0.8, 0.4],
+              x: [0, 20, 0],
+              rotate: [0, 180, 360],
+            }}
+            transition={{
+              duration: 6,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-orange-300/30 via-orange-400/25 to-transparent rounded-full blur-2xl"
+            animate={{
+              scale: [1.2, 1, 1.2],
+              opacity: [0.3, 0.7, 0.3],
+              x: [0, -15, 0],
+              rotate: [360, 180, 0],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1
+            }}
+          />
+        </div>
+
+        {/* Right Glow Effect */}
+        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-96 h-96">
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-l from-purple-400/40 via-purple-500/35 to-transparent rounded-full blur-3xl"
+            animate={{
+              scale: [1.5, 1, 1.5],
+              opacity: [0.8, 0.4, 0.8],
+              x: [0, -20, 0],
+              rotate: [360, 180, 0],
+            }}
+            transition={{
+              duration: 7,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 0.5
+            }}
+          />
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-l from-purple-300/30 via-purple-400/25 to-transparent rounded-full blur-2xl"
+            animate={{
+              scale: [1, 1.3, 1],
+              opacity: [0.3, 0.7, 0.3],
+              x: [0, 15, 0],
+              rotate: [0, 180, 360],
+            }}
+            transition={{
+              duration: 9,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 2
+            }}
+          />
+        </div>
+
         {/* Floating Particles */}
         <div className="absolute inset-0 overflow-hidden">
           {[...Array(15)].map((_, i) => (
@@ -464,7 +495,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           {[...Array(8)].map((_, i) => (
             <motion.div
               key={`geo-${i}`}
-              className="absolute border border-orange-200/10 backdrop-blur-sm"
+              className="absolute border border-orange-200/10"
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
@@ -497,22 +528,71 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             transition={{ duration: 1.2, ease: "easeOut" }}
           >
             <h1 className="text-7xl md:text-9xl font-bold mb-6 tracking-tight relative">
+              {/* 3D Outline Text - Multiple layers for depth */}
               <motion.span 
-                className="absolute inset-0 text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-orange-600 to-purple-600 animate-gradient-fill"
-                initial={{ opacity: 0 }}
+                className="text-transparent block"
+                initial={{ opacity: 1 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 2, delay: 1 }}
               >
-                Sampurn Samadhan
+                <TypeAnimation
+                  sequence={[
+                    'Sampurn Samadhan',
+                    3000,
+                    'Complete Solutions',
+                    3000,
+                    'AI Powered',
+                    3000,
+                    'Sampurn Samadhan',
+                    3000
+                  ]}
+                  wrapper="span"
+                  speed={80}
+                  repeat={Infinity}
+                  className="block"
+                  cursor={true}
+                  style={{ fontSize: 'inherit' }}
+                />
               </motion.span>
+              
+              {/* Filling Text - Animates from transparent to filled with light orange */}
               <motion.span 
-                className="text-gray-800 block"
-                style={{ WebkitTextStroke: '2px rgba(0,0,0,0.1)' }}
-                initial={{ opacity: 0.8 }}
-                animate={{ opacity: 0.3 }}
-                transition={{ duration: 2, delay: 1 }}
+                className="absolute inset-0 text-transparent bg-clip-text bg-gradient-to-r from-orange-300 via-orange-400 to-orange-500"
+                style={{ 
+                  backgroundSize: '0% 100%',
+                  backgroundPosition: 'left center',
+                  backgroundRepeat: 'no-repeat'
+                }}
+                initial={{ 
+                  backgroundSize: '0% 100%',
+                  opacity: 0.8
+                }}
+                animate={{ 
+                  backgroundSize: '100% 100%',
+                  opacity: 1
+                }}
+                transition={{ 
+                  backgroundSize: { duration: 3, delay: 1.5, ease: "easeOut" },
+                  opacity: { duration: 1.5, delay: 1.5 }
+                }}
               >
-                Sampurn Samadhan
+                <TypeAnimation
+                  sequence={[
+                    'Sampurn Samadhan',
+                    3000,
+                    'Complete Solutions',
+                    3000,
+                    'AI Powered',
+                    3000,
+                    'Sampurn Samadhan',
+                    3000
+                  ]}
+                  wrapper="span"
+                  speed={80}
+                  repeat={Infinity}
+                  className="block"
+                  cursor={true}
+                  style={{ fontSize: 'inherit' }}
+                />
               </motion.span>
             </h1>
           </motion.div>
@@ -537,7 +617,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           >
             <motion.button
               onClick={handleExplore}
-              className="bg-gradient-to-r from-orange-400 to-orange-500 text-white px-12 py-6 rounded-3xl hover:from-orange-500 hover:to-orange-600 transition-all shadow-2xl flex items-center space-x-4 text-xl font-semibold backdrop-blur-sm border border-orange-300/30"
+              className="bg-gradient-to-r from-orange-400 to-orange-500 text-white px-12 py-6 rounded-3xl hover:from-orange-500 hover:to-orange-600 transition-all shadow-2xl flex items-center space-x-4 text-xl font-semibold border border-orange-300/30"
               whileHover={{ 
                 scale: 1.05, 
                 y: -2,
@@ -550,7 +630,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             </motion.button>
             <motion.button
               onClick={() => window.open('https://studio.youtube.com/playlist?list=PLRPWk8KNIaIMvZ3K3C0nA2GXG7H9dOrOa', '_blank')}
-              className="border-2 border-orange-300/50 text-orange-600 px-12 py-6 rounded-3xl hover:bg-orange-50/30 transition-all flex items-center space-x-4 text-xl font-semibold backdrop-blur-sm bg-white/20"
+              className="border-2 border-orange-300/50 text-orange-600 px-12 py-6 rounded-3xl hover:bg-orange-50/30 transition-all flex items-center space-x-4 text-xl font-semibold bg-white/20"
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -603,7 +683,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       </section>
 
       {/* Story Section - Rekha's Journey */}
-      <section className="py-32 relative">
+      <section className="py-32 relative z-10">
         <div className="container mx-auto px-8">
           <div className="animate-on-scroll text-center mb-20">
             <h2 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-6">
@@ -617,7 +697,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center max-w-7xl mx-auto">
             {/* Story Content */}
             <div className="animate-on-scroll space-y-8">
-              <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-orange-200/30">
+              <div className="bg-white/70 rounded-3xl p-8 shadow-xl border border-orange-200/30">
                 <h3 className="text-3xl font-bold text-gray-800 mb-6">
                   The Challenge - Before Sampurn Samadhan
                 </h3>
@@ -687,7 +767,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                 </div>
               </div>
 
-              <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-orange-200/30">
+              <div className="bg-white/70 rounded-3xl p-8 shadow-xl border border-orange-200/30">
                 <h3 className="text-3xl font-bold text-gray-800 mb-6">
                   The Transformation - After Sampurn Samadhan
                 </h3>
@@ -819,7 +899,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-32 relative">
+      <section id="features" className="py-32 relative z-10">
         <div className="container mx-auto px-8">
           <div className="animate-on-scroll text-center mb-20">
             <h2 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-6">Our Smart Solutions</h2>
@@ -834,12 +914,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               return (
                 <motion.div
                   key={feature.title}
-                  className="animate-on-scroll bg-white/40 backdrop-blur-xl rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 cursor-pointer border border-orange-100/50 group relative overflow-hidden"
+                  className="animate-on-scroll bg-white/60 rounded-3xl p-10 shadow-xl hover:shadow-2xl transition-all duration-500 cursor-pointer border border-orange-100/50 group relative overflow-hidden"
                   whileHover={{ scale: 1.02, y: -5 }}
                   onClick={handleExplore}
                 >
-                  {/* Glassmorphism Background Effect */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent backdrop-blur-sm rounded-3xl" />
+                  {/* Subtle Background Effect */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent rounded-3xl" />
                   
                   <div className="relative z-10">
                     <div className={`w-20 h-20 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center mb-8 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
@@ -867,9 +947,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-32 bg-white/20 backdrop-blur-sm">
+      <section className="py-32 bg-white/10 relative z-10">
         <div className="container mx-auto px-8">
-          <div className="animate-on-scroll bg-white/40 backdrop-blur-xl rounded-3xl p-12 md:p-16 shadow-xl border border-orange-100/50">
+          <div className="animate-on-scroll bg-white/70 rounded-3xl p-12 md:p-16 shadow-xl border border-orange-100/50">
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-6">Impact Numbers</h2>
               <p className="text-xl md:text-2xl text-gray-600">Transforming lives through technology</p>
@@ -902,7 +982,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-24">
+      <section id="about" className="py-24 relative z-10">
         <div className="container mx-auto px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="animate-on-scroll">
@@ -946,20 +1026,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       </section>
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-24 bg-white/30 backdrop-blur-sm">
+      <section id="testimonials" className="py-24 bg-white/15 relative z-10">
         <div className="container mx-auto px-8">
-          <div className="animate-on-scroll text-center mb-20">
-            <h2 className="text-5xl font-bold text-gray-900 mb-6">What Our Users Say</h2>
-            <p className="text-2xl text-gray-700 max-w-4xl mx-auto">
-              Real stories from people whose lives have been transformed by our solutions
-            </p>
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-6">What People Say</h2>
+            <p className="text-xl md:text-2xl text-gray-600">Real stories from real users</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
             {testimonials.map((testimonial, index) => (
               <motion.div
                 key={index}
-                className="animate-on-scroll bg-white/60 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-orange-200/30"
+                className="animate-on-scroll bg-white/70 rounded-3xl p-8 shadow-xl border border-orange-200/30"
                 whileHover={{ scale: 1.02, y: -5 }}
               >
                 <div className="flex items-center mb-6">
@@ -986,7 +1064,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       </section>
 
       {/* Process Section */}
-      <section className="py-24">
+      <section className="py-24 relative z-10">
         <div className="container mx-auto px-8">
           <div className="animate-on-scroll text-center mb-20">
             <h2 className="text-5xl font-bold text-gray-900 mb-6">How It Works</h2>
@@ -1027,7 +1105,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-24 bg-white/30 backdrop-blur-sm">
+      <section className="py-24 bg-white/15 relative z-10">
         <div className="container mx-auto px-8">
           <div className="animate-on-scroll text-center mb-20">
             <h2 className="text-5xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
@@ -1057,7 +1135,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             ].map((faq, index) => (
               <motion.div
                 key={index}
-                className="animate-on-scroll bg-white/60 backdrop-blur-xl rounded-2xl p-8 shadow-lg border border-orange-200/30"
+                className="animate-on-scroll bg-white/70 rounded-2xl p-8 shadow-lg border border-orange-200/30"
               >
                 <h3 className="text-xl font-bold text-gray-900 mb-4">{faq.q}</h3>
                 <p className="text-gray-700 leading-relaxed">{faq.a}</p>
@@ -1068,7 +1146,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24">
+      <section className="py-24 relative z-10">
         <div className="container mx-auto px-8">
           <motion.div
             className="animate-on-scroll bg-gradient-to-r from-orange-400 to-orange-500 rounded-3xl p-16 text-white text-center relative overflow-hidden"
@@ -1116,7 +1194,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                   <ArrowRight className="w-6 h-6" />
                 </motion.button>
                 <motion.a
-                  onClick={() => onNavigate('contact')}
+                  onClick={() => navigate('/contact')}
                   className="border-2 border-white/30 text-white px-12 py-6 rounded-2xl hover:bg-white/10 transition-all flex items-center space-x-4 text-xl font-semibold cursor-pointer"
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
@@ -1131,7 +1209,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-16">
+      <footer className="bg-gray-900 text-white py-16 relative z-10">
         <div className="container mx-auto px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
             <div>
@@ -1149,27 +1227,27 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             <div>
               <h3 className="text-lg font-bold mb-4">Solutions</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Health Management</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Smart Agriculture</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Grievance System</a></li>
+                <li><Link to="/health-management" className="hover:text-white transition-colors">Health Management</Link></li>
+                <li><Link to="/smart-agriculture" className="hover:text-white transition-colors">Smart Agriculture</Link></li>
+                <li><Link to="/grievance-system" className="hover:text-white transition-colors">Grievance System</Link></li>
               </ul>
             </div>
             
             <div>
               <h3 className="text-lg font-bold mb-4">Company</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+                <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
+                <li><Link to="/careers" className="hover:text-white transition-colors">Careers</Link></li>
+                <li><Link to="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/terms-of-service" className="hover:text-white transition-colors">Terms of Service</Link></li>
               </ul>
             </div>
             
             <div>
               <h3 className="text-lg font-bold mb-4">Connect</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><button onClick={() => onNavigate('contact')} className="hover:text-white transition-colors text-left">Contact Us</button></li>
-                <li><a href="#" className="hover:text-white transition-colors">Support</a></li>
+                <li><Link to="/contact" className="hover:text-white transition-colors text-left">Contact Us</Link></li>
+                <li><Link to="/support" className="hover:text-white transition-colors">Support</Link></li>
               </ul>
               <div className="flex space-x-4 mt-4">
                 {[Facebook, Twitter, Instagram, Linkedin].map((Icon, index) => (

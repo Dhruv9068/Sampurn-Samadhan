@@ -30,13 +30,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, setCurrentPortal }) =>
       </div>
 
       {/* Sidebar */}
-      <div style={{ zIndex: 50 }}>
-        <GrievanceSidebar 
-          isOpen={sidebarOpen} 
-          onClose={() => setSidebarOpen(false)}
-          onLogout={handleBackToPortal} // Pass local handler
-        />
-      </div>
+      <GrievanceSidebar 
+        isOpen={sidebarOpen} 
+        onClose={() => setSidebarOpen(false)}
+        onLogout={handleBackToPortal}
+      />
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden relative min-w-0" style={{ zIndex: 10 }}>

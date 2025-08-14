@@ -1,16 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
   Sparkles, Eye, EyeOff, Mail, Lock, User, Phone, 
   ArrowLeft, CheckCircle, AlertCircle, Loader
 } from 'lucide-react';
 
-interface LoginPageProps {
-  onLogin: (user: any) => void;
-}
-
-const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
+const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
@@ -39,13 +35,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     // Simulate API call
     setTimeout(() => {
       if (loginForm.email && loginForm.password) {
-        const userData = {
-          id: '1',
-          name: 'John Doe',
-          email: loginForm.email,
-          avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
-        };
-        onLogin(userData);
         setSuccess('Login successful! Redirecting...');
         setTimeout(() => navigate('/portal'), 1000);
       } else {
@@ -69,13 +58,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     // Simulate API call
     setTimeout(() => {
       if (signupForm.name && signupForm.email && signupForm.password) {
-        const userData = {
-          id: '1',
-          name: signupForm.name,
-          email: signupForm.email,
-          avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop'
-        };
-        onLogin(userData);
         setSuccess('Account created successfully! Redirecting...');
         setTimeout(() => navigate('/portal'), 1000);
       } else {
@@ -86,7 +68,19 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden bg-white">
+      {/* Soft Glow Background */}
+      <div 
+        className="fixed inset-0 transition-all duration-1000 ease-out"
+        style={{ 
+          background: `linear-gradient(
+            to bottom,
+            rgba(255, 154, 72, 0.15), /* Soft Orange */
+            rgba(203, 141, 255, 0.08) /* Soft Purple */
+          )`
+        }}
+      />
+      
       {/* Animated Background */}
       <div className="absolute inset-0">
         {/* Liquid Background Blobs */}

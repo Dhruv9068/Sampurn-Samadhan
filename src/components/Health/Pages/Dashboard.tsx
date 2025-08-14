@@ -196,6 +196,8 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="p-10 bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen">
+
+
       {/* Welcome Section */}
       <div className="mb-10">
         <div className="bg-gradient-to-r from-blue-100/50 to-cyan-200/50 rounded-3xl p-10 text-white">
