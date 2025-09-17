@@ -5,6 +5,7 @@ import { useRealTimeComplaints } from '../../../hooks/useRealTimeComplaints';
 import { ComplaintForm } from './ComplaintForm';
 import { ComplaintSolutionPanel } from './ComplaintSolutionPanel';
 import { Complaint } from '../../../types/index';
+import { renderMarkdown } from '../../../utils/markdownRenderer';
 
 const priorityColors = {
   low: 'bg-green-100 text-green-800 border-green-200',
@@ -271,23 +272,21 @@ export const ComplaintsList: React.FC = () => {
                     <div className="space-y-3">
                       <div className="flex items-center space-x-2">
                         <span className="text-sm text-gray-600">Sentiment:</span>
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
                           selectedComplaint.sentiment === 'positive' ? 'bg-green-100 text-green-800' :
                           selectedComplaint.sentiment === 'negative' ? 'bg-red-100 text-red-800' :
                           'bg-gray-100 text-gray-800'
-                        }`}>
-                        
-                        </span>
-                      </div>
-                      
-                      {selectedComplaint.watson_reply && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-700 mb-1">AI Response:</p>
-                          <p className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
-                            {selectedComplaint.watson_reply}
-                          </p>
+                        }`} dangerouslySetInnerHTML={{ __html: renderMarkdown((selectedComplaint.sentiment ?? 'neutral')?.charAt(0).toUpperCase() + (selectedComplaint.sentiment ?? 'neutral')?.slice(1)) }} />
+                    </div>
+                    
+                    {selectedComplaint.watson_reply && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 mb-1">AI Response:</p>
+                        <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border border-blue-200 prose prose-sm max-w-none">
+                          <div dangerouslySetInnerHTML={{ __html: renderMarkdown(selectedComplaint.watson_reply) }} />
                         </div>
-                      )}
+                      </div>
+                    )}
                     </div>
                   </div>
                 </div>

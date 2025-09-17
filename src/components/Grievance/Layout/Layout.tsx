@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GrievanceSidebar } from './GrievanceSidebar';
 import { Header } from './Header';
+import { renderMarkdown } from '../../../utils/markdownRenderer';
 
 type PortalType = 'landing' | 'portal' | 'health' | 'agriculture' | 'grievance' | 'contact';
 
@@ -146,9 +147,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, setCurrentPortal }) =>
                     {selectedComplaint.watson_reply && (
                       <div>
                         <p className="text-sm font-medium text-gray-700 mb-1">AI Response:</p>
-                        <p className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
-                          {selectedComplaint.watson_reply}
-                        </p>
+                        <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border border-blue-200 prose prose-sm max-w-none">
+                          <div dangerouslySetInnerHTML={{ __html: renderMarkdown(selectedComplaint.watson_reply) }} />
+                        </div>
                       </div>
                     )}
                   </div>

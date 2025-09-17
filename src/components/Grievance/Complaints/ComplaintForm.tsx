@@ -4,6 +4,7 @@ import { X, Send, Loader, Brain, Zap, CheckCircle, Mic, MicOff } from 'lucide-re
 import { useRealTimeComplaints } from '../../../hooks/useRealTimeComplaints';
 import { geminiService } from '../../../services/geminiService';
 import { speechService } from '../../../services/speechService';
+import { renderMarkdown } from '../../../utils/markdownRenderer';
 import toast from 'react-hot-toast';
 
 interface ComplaintFormProps {
@@ -60,15 +61,15 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({ onClose, onSubmit 
 
     setIsAnalyzing(true);
     try {
-      const prompt = `As a complaint analysis AI, analyze the following complaint: ${formData.title}. ${formData.description}. 
+      const prompt = `As a complaint analysis AI, analyze the following complaint: ${formData.title}. ${formData.description}.
         Provide:
         1. Category (choose from: ${categories.join(', ')})
         2. Priority (choose from: low, medium, high, critical)
         3. Department (appropriate department for the category)
         4. Sentiment (positive, negative, neutral)
         5. A detailed response addressing the complaint.`;
-      
-      const response = await geminiService.sendMessage(prompt, undefined, currentLanguage);
+
+      const response = await geminiService.sendGrievanceMessage(prompt, currentLanguage);
       
       // Parse the response (assuming Gemini returns a structured text)
       const analysis = {
@@ -123,15 +124,15 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({ onClose, onSubmit 
       
       // If no AI analysis was done, do it now
       if (!analysis) {
-        const prompt = `As a complaint analysis AI, analyze the following complaint: ${formData.title}. ${formData.description}. 
+        const prompt = `As a complaint analysis AI, analyze the following complaint: ${formData.title}. ${formData.description}.
           Provide:
           1. Category (choose from: ${categories.join(', ')})
           2. Priority (choose from: low, medium, high, critical)
           3. Department (appropriate department for the category)
           4. Sentiment (positive, negative, neutral)
           5. A detailed response addressing the complaint.`;
-        
-        const response = await geminiService.sendMessage(prompt, undefined, currentLanguage);
+
+        const response = await geminiService.sendGrievanceMessage(prompt, currentLanguage);
         
         analysis = {
           category: '',
@@ -347,7 +348,7 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({ onClose, onSubmit 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-purple-600 font-medium">Category:</span>
-                  <span className="ml-2 text-purple-800">{aiAnalysis.category}</span>
+                  <span className="ml-2 text-purple-800" dangerouslySetInnerHTML={{ __html: renderMarkdown(aiAnalysis.category) }} />
                 </div>
                 <div>
                   <span className="text-purple-600 font-medium">Priority:</span>
@@ -356,13 +357,11 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({ onClose, onSubmit 
                     aiAnalysis.priority === 'high' ? 'bg-orange-100 text-orange-800' :
                     aiAnalysis.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
                     'bg-green-100 text-green-800'
-                  }`}>
-                    {aiAnalysis.priority}
-                  </span>
+                  }`} dangerouslySetInnerHTML={{ __html: renderMarkdown(aiAnalysis.priority) }} />
                 </div>
                 <div>
                   <span className="text-purple-600 font-medium">Department:</span>
-                  <span className="ml-2 text-purple-800">{aiAnalysis.department}</span>
+                  <span className="ml-2 text-purple-800" dangerouslySetInnerHTML={{ __html: renderMarkdown(aiAnalysis.department) }} />
                 </div>
                 <div>
                   <span className="text-purple-600 font-medium">Sentiment:</span>
@@ -370,9 +369,7 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({ onClose, onSubmit 
                     aiAnalysis.sentiment === 'positive' ? 'bg-green-100 text-green-800' :
                     aiAnalysis.sentiment === 'negative' ? 'bg-red-100 text-red-800' :
                     'bg-gray-100 text-gray-800'
-                  }`}>
-                    {aiAnalysis.sentiment}
-                  </span>
+                  }`} dangerouslySetInnerHTML={{ __html: renderMarkdown(aiAnalysis.sentiment) }} />
                 </div>
               </div>
               
@@ -382,9 +379,9 @@ export const ComplaintForm: React.FC<ComplaintFormProps> = ({ onClose, onSubmit 
                     <CheckCircle className="w-4 h-4 mr-1" />
                     AI Response:
                   </span>
-                  <p className="mt-1 text-purple-800 text-sm italic bg-white/50 p-3 rounded-lg">
-                    "{geminiResponse}"
-                  </p>
+                  <div className="mt-1 text-purple-800 text-sm italic bg-white/50 p-3 rounded-lg prose prose-sm max-w-none">
+                    <div dangerouslySetInnerHTML={{ __html: renderMarkdown(geminiResponse) }} />
+                  </div>
                 </div>
               )}
             </motion.div>
